@@ -30,6 +30,10 @@ jobs:
         run: npx playwright install --with-deps
 
       # Start Next.js in background properly and save PID
+      - name: Check environment variables
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL is ${NEXT_PUBLIC_SUPABASE_URL:-NOT SET}"
+          echo "SUPABASE_SERVICE_KEY is ${SUPABASE_SERVICE_KEY:-NOT SET}"
       - name: Start Next.js app
         run: |
           npm run dev &
