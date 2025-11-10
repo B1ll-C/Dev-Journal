@@ -29,11 +29,20 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
+      # Start Next.js in background properly and save PID
       - name: Start Next.js app
-        run: npm run dev &
+        run: |
+          npm run dev &
+          echo $! > server.pid
 
+      # Wait until the app is ready
       - name: Wait for app
-        run: npx wait-on http://localhost:3000 --timeout 30000
+        run: npx wait-on http://localhost:3000 --timeout 60000
 
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --timeout 60000
+
+      # Kill the dev server after tests
+      - name: Stop Next.js app
+        if: always()
+        run: kill $(cat server.pid)
