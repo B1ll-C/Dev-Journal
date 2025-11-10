@@ -5,35 +5,52 @@ on:
     branches:
       - master
   pull_request:
-    branches:
-      - master
 
 jobs:
   test:
     runs-on: ubuntu-latest
     env:
+      NODE_ENV: test
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
     steps:
-      # 1. Checkout code
-      - name: Checkout repository
+      - name: Check environment variables
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL is ${NEXT_PUBLIC_SUPABASE_URL:-NOT SET}"
+          echo "SUPABASE_SERVICE_KEY is ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-NOT SET}"
+      - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Setup Node.js 22.17.1
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 22.17.1
+          node-version: 20
 
-      # 3. Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      # 4. Install Playwright browsers
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      # 5. Run Playwright tests
+      # Start Next.js in background properly and save PID
+
+      - name: Start Next.js app
+        run: |
+          npm run dev &
+          echo $! > server.pid
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL}}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+      # Wait until the app is ready
+      - name: Wait for app
+        run: npx wait-on http://localhost:3000 --timeout 60000
+
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --timeout 60000
+
+      # Kill the dev server after tests
+      - name: Stop Next.js app
+        if: always()
+        run: kill $(cat server.pid)
