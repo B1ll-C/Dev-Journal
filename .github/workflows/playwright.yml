@@ -30,7 +30,7 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Start Next.js app
-        run: npm run start &
+        run: npm run dev &
 
       - name: Wait for app
         run: npx wait-on http://localhost:3000 --timeout 30000
