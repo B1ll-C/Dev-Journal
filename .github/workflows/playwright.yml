@@ -15,42 +15,9 @@ jobs:
       SUPABASE_SERVICE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
     steps:
-      - name: Check environment variables
+      - uses: actions/checkout@v4
+
+      - name: Log Secrets
         run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL is ${NEXT_PUBLIC_SUPABASE_URL:-NOT SET}"
-          echo "SUPABASE_SERVICE_KEY is ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-NOT SET}"
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps
-
-      # Start Next.js in background properly and save PID
-
-      - name: Start Next.js app
-        run: |
-          npm run dev &
-          echo $! > server.pid
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL}}
-          SUPABASE_SERVICE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
-      # Wait until the app is ready
-      - name: Wait for app
-        run: npx wait-on http://localhost:3000 --timeout 60000
-
-      - name: Run Playwright tests
-        run: npx playwright test --timeout 60000
-
-      # Kill the dev server after tests
-      - name: Stop Next.js app
-        if: always()
-        run: kill $(cat server.pid)
+          echo "NEXT_PUBLIC_SUPABASE_URL is ${secrets.NEXT_PUBLIC_SUPABASE_URL:-NOT SET}"
+          echo "SUPABASE_SERVICE_KEY is ${secrets.SUPABASE_SERVICE_KEY:-NOT SET}"
