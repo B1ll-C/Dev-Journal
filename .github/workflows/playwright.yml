@@ -12,9 +12,13 @@ jobs:
     env:
       NODE_ENV: test
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
     steps:
+      - name: Check environment variables
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL is ${NEXT_PUBLIC_SUPABASE_URL:-NOT SET}"
+          echo "SUPABASE_SERVICE_KEY is ${NEXT_PUBLIC_SUPABASE_ANON_KEY:-NOT SET}"
       - name: Checkout code
         uses: actions/checkout@v3
 
@@ -30,17 +34,14 @@ jobs:
         run: npx playwright install --with-deps
 
       # Start Next.js in background properly and save PID
-      - name: Check environment variables
-        run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL is ${NEXT_PUBLIC_SUPABASE_URL:-NOT SET}"
-          echo "SUPABASE_SERVICE_KEY is ${SUPABASE_SERVICE_KEY:-NOT SET}"
+
       - name: Start Next.js app
         run: |
           npm run dev &
           echo $! > server.pid
         env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL}}
+          SUPABASE_SERVICE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
       # Wait until the app is ready
       - name: Wait for app
